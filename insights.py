@@ -32,18 +32,47 @@ def fetch_news(symbols, max_articles=5):
     return headlines
 
 # --- AI Insights Generation ---
-def generate_insight(headlines, openai_api_key=None):
+def generate_insight(headlines, openai_api_key=None, prompt_type=1, coins=None):
     if not headlines:
         return "No news headlines available."
-    prompt = PromptTemplate(
-        input_variables=["headlines"],
-        template="""
-        Given the following recent crypto news headlines:
-        {headlines}
-        
-        Summarize the overall sentiment and mention any important events or trends relevant to a crypto investor.
-        """
-    )
+    if coins is None:
+        coins = []
+    coin_list = ', '.join(coins)
+    if prompt_type == 1:
+        prompt = PromptTemplate(
+            input_variables=["headlines"],
+            template="""
+            Given the following recent crypto news headlines:
+            {headlines}
+            
+            Summarize the overall sentiment and mention any important events or trends relevant to a crypto investor.
+            """
+        )
+    elif prompt_type == 2:
+        prompt = PromptTemplate(
+            input_variables=["headlines", "coins"],
+            template="""
+            Analyze these news headlines for the following coins: {coins}.
+            What are the key risks and opportunities for each coin based on the latest news?
+            Headlines:
+            {headlines}
+            """
+        )
+    elif prompt_type == 3:
+        prompt = PromptTemplate(
+            input_variables=["headlines", "coins"],
+            template="""
+            Based on the news below, what is the likely short-term market movement for the following cryptocurrencies: {coins}?
+            Provide reasoning for your prediction.
+            Headlines:
+            {headlines}
+            """
+        )
+    else:
+        return "Invalid prompt type."
     llm = OpenAI(openai_api_key=openai_api_key, temperature=0.3)
-    response = llm(prompt.format(headlines="\n".join(headlines)))
+    if prompt_type == 1:
+        response = llm(prompt.format(headlines="\n".join(headlines)))
+    else:
+        response = llm(prompt.format(headlines="\n".join(headlines), coins=coin_list))
     return response 

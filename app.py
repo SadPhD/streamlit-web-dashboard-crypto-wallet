@@ -56,10 +56,27 @@ st.metric("Total Portfolio Value (USD)", f"${total_value:,.2f}")
 
 st.subheader("AI-Powered Portfolio Insights")
 
+# Prompt selection
+prompt_type = st.selectbox(
+    "Choose the type of AI insight:",
+    [
+        "Summarize sentiment and events",
+        "Key risks and opportunities for each coin",
+        "Likely short-term market movement"
+    ],
+    index=0
+)
+prompt_type_map = {
+    "Summarize sentiment and events": 1,
+    "Key risks and opportunities for each coin": 2,
+    "Likely short-term market movement": 3
+}
+
 # Button to generate insights
 if st.button("Generate AI Insight about My Portfolio"):
     # Fetch news for portfolio coins
     symbols = portfolio_df["symbol"].tolist()
+    coins = portfolio_df["coin"].tolist()
     headlines = fetch_news(symbols)
     st.write("### Recent News Headlines:")
     for h in headlines:
@@ -70,6 +87,11 @@ if st.button("Generate AI Insight about My Portfolio"):
         st.error("OPENAI_API_KEY is not set. Please add it to your .env file.")
         st.stop()
     with st.spinner("Generating insight..."):
-        insight = generate_insight(headlines, openai_api_key=openai_api_key)
+        insight = generate_insight(
+            headlines,
+            openai_api_key=openai_api_key,
+            prompt_type=prompt_type_map[prompt_type],
+            coins=coins
+        )
     st.success("AI Insight:")
     st.write(insight) 
