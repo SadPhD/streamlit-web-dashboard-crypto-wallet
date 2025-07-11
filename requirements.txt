@@ -5,3 +5,4 @@ requests
 pandas
 yfinance 
 python-dotenv 
+langchain-community 
